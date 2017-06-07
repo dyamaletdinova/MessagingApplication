@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/rabbit
+        http://www.springframework.org/schema/rabbit/spring-rabbit.xsd"
+        profile="clientone">
+
+    <rabbit:connection-factory id="connectionFactory" host="localhost" username="joe" password="joe"/>
+ 
+    <rabbit:admin connection-factory="connectionFactory" />
+
+	<rabbit:queue name="serverQueue" durable="true"/>
+	
+	<rabbit:queue name="clientOneQueue" durable="true"/>
+
+	 <rabbit:direct-exchange name="direct" durable="true">
+	  <rabbit:bindings>
+	   	<rabbit:binding queue="serverQueue" key="messages.server"></rabbit:binding>
+  		<rabbit:binding queue="clientOneQueue" key="messages.clientOne"></rabbit:binding>
+	  </rabbit:bindings>
+	 </rabbit:direct-exchange>
+
+<!-- **************** DIRECT PRODUCER  -->
+ 	<rabbit:template id="msgRouter" connection-factory="connectionFactory"
+                     reply-timeout="2000" routing-key="messages.server"
+                     exchange="direct" />
+
+<!--  ****************  DIRECT CONSUMER ************************* -->
+ 	<rabbit:listener-container connection-factory="connectionFactory">
+	<rabbit:listener ref="queueListener" method="listen" queue-names="clientOneQueue" />
+
+	</rabbit:listener-container>
+
+	<bean id="queueListener" class="edu.mum.amqp.DirectListener" />
+
+</beans>

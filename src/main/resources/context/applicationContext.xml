@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+   xmlns:tx="http://www.springframework.org/schema/tx"
+   	 xmlns:aop="http://www.springframework.org/schema/aop"
+   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+    xsi:schemaLocation="
+      http://www.springframework.org/schema/beans 
+      http://www.springframework.org/schema/beans/spring-beans.xsd
+ 	  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+      http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+      http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+      http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+ 
+ 	<context:component-scan base-package="edu.mum.*" />  
+
+ 	<aop:aspectj-autoproxy/>
+
+ 	<context:property-placeholder location="classpath:application.properties" />
+
+<!-- #{systemProperties.queue}  systemProperties['queue'] -->
+
+<!-- 	<bean id="queueContext" class="java.lang.String"> -->
+<!-- 		<constructor-arg value="#{systemProperties.myqueue}"/> -->
+<!-- 	</bean> -->
+
+<!-- 	<bean id="queueConfig" class="java.lang.String"> -->
+<!-- 		<constructor-arg value="${'amqp-'.concat('-context.xml')}"/> -->
+<!-- 	</bean> -->
+
+<!-- 	<import resource="${queueConfig.toString}" /> -->
+
+    	<import resource="amqp-clientone-context.xml" />
+    	<import resource="amqp-clienttwo-context.xml" />
+	
+<!-- 	<import resource="${#systemProperties['myqueue']==1?'amqp-clientone-context.xml':'amqp-clienttwo-context.xml'}"/> -->
+	
+<!-- 	<import resource="order-app-context.xml"/> -->
+ 
+ 	<bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
+        <constructor-arg>
+            <bean class="org.springframework.http.client.HttpComponentsClientHttpRequestFactory">
+                <property name="readTimeout" value="630000" />
+                <property name="connectTimeout" value="30000" />
+            </bean>
+        </constructor-arg>
+        <property name="messageConverters">
+    		<list>
+        		<bean class="org.springframework.http.converter.FormHttpMessageConverter"/>
+        		<bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+       			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+   			</list>
+		</property>
+		<property name="interceptors">
+       	 	<list merge="true">
+       	 	 	<bean id="basicAuthentication" class="org.springframework.http.client.support.BasicAuthorizationInterceptor">
+ 					<constructor-arg name="username" value="admin"/>
+ 					<constructor-arg name="password" value="admin"/>
+ 				</bean>
+        	</list>
+		</property>
+    </bean>
+
+<bean name="aspectClient" class="edu.mum.aop.AspectClient"/>
+ 
+</beans>
